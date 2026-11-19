@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ScanRx – Drug Info by QR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--bg:#f3f7f5;--surface:#fff;--ink:#12302f;--muted:#5b7371;--line:#d5e2de;--brand:#0f6b63;--brand-ink:#fff;--warn-bg:#fff3d6;--warn-ink:#6b4a00;--otc:#dff3e8;--rx:#fde4de;--rx-ink:#8a2a16;--otc-ink:#14583a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b1a;--surface:#162726;--ink:#e3f1ee;--muted:#93b0ab;--line:#2a4240;--brand:#4cc2b5;--brand-ink:#06201d;--warn-bg:#3a2f10;--warn-ink:#f2d98a;--otc:#173a2b;--rx:#43221b;--rx-ink:#ffb9a8;--otc-ink:#8fe0b6}}
+:root[data-theme="dark"]{--bg:#0e1b1a;--surface:#162726;--ink:#e3f1ee;--muted:#93b0ab;--line:#2a4240;--brand:#4cc2b5;--brand-ink:#06201d;--warn-bg:#3a2f10;--warn-ink:#f2d98a;--otc:#173a2b;--rx:#43221b;--rx-ink:#ffb9a8;--otc-ink:#8fe0b6}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 "Source Sans 3",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","Source Sans 3",system-ui,sans-serif;margin:0;line-height:1.15}
+main{max-width:680px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{font-size:30px;letter-spacing:-.5px}
+.sub{color:var(--muted);font-size:14px}
+nav{display:flex;gap:4px;background:var(--line);padding:4px;border-radius:12px;margin-bottom:18px}
+nav button{flex:1;border:0;background:transparent;color:var(--muted);font:600 15px inherit;font-family:inherit;padding:10px;border-radius:9px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--ink)}
+button:focus-visible,input:focus-visible,.item:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.viewfinder{position:relative;aspect-ratio:1/1;max-height:340px;width:100%;background:#0a1514;border-radius:12px;overflow:hidden;display:grid;place-items:center;color:#b8d0cc;text-align:center}
+.viewfinder video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.viewfinder .frame{position:absolute;inset:18%;border:3px solid #4cc2b5;border-radius:16px;pointer-events:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border:0;background:var(--brand);color:var(--brand-ink);font:600 15px inherit;font-family:inherit;padding:11px 16px;border-radius:10px;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+input[type=text]{flex:1;min-width:140px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.msg{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.msg.err{color:var(--rx-ink)}
+#result{margin-top:18px}
+.drug h2{font-size:28px}
+.brands{color:var(--muted);margin:2px 0 8px}
+.tag{display:inline-block;font:600 13px inherit;font-family:inherit;padding:3px 10px;border-radius:99px}
+.tag.otc{background:var(--otc);color:var(--otc-ink)}.tag.rx{background:var(--rx);color:var(--rx-ink)}
+.sec{border-top:1px solid var(--line);padding:12px 0}
+.sec h3{font-size:16px;margin-bottom:4px}
+.sec ul{margin:4px 0 0;padding-left:20px}
+.warn{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:14px}
+.qrbox{display:flex;gap:14px;align-items:center;border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+.qrbox .qr{background:#fff;padding:8px;border-radius:8px;line-height:0}
+.qrbox .qr svg,.qrbox .qr img{width:112px;height:112px}
+.list{display:grid;gap:8px;margin-top:10px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;width:100%;padding:12px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;font:inherit;cursor:pointer}
+.item b{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:18px}
+.item small{display:block;color:var(--muted)}
+.hide{display:none}
+.qr.big{background:#fff;padding:12px;border-radius:12px;line-height:0;display:inline-block;margin:6px 0}.qr.big svg{width:220px;height:220px}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.qcell{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.qcell .qr{background:#fff;padding:6px;border-radius:8px;line-height:0;margin-bottom:6px}.qcell .qr svg{width:100%;height:auto}
+button,input,textarea{font-family:inherit;font-size:inherit}
+.btn,nav button,.chip{font-weight:600}
+.btn{min-height:44px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:99px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:4px 0}
+body.big{font-size:19px}
+.back{margin-bottom:12px}
+.urgent{background:var(--rx);color:var(--rx-ink);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:14px}
+details.share{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+details.share summary{cursor:pointer;font-weight:600}
+details.share .qrbox{border-top:0;padding-top:10px}
+:root{--bg:#e9f1f4;--ink:#15262b;--muted:#6b7f86;--line:#e3ecef;--brand:#0a8ca0;--otc:#dcf2f1;--otc-ink:#0a6f7f;--field:rgba(255,255,255,.75);--grad:linear-gradient(180deg,#e4eff3 0%,#edf2f5 50%,#fbe8e7 100%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b20;--surface:#17252b;--line:#2a3d44;--brand:#4fc3d6;--otc:#143a40;--otc-ink:#8fdbe8;--field:rgba(255,255,255,.08);--grad:linear-gradient(180deg,#0e1b20 0%,#131c22 55%,#241a22 100%)}}
+:root[data-theme="dark"]{--bg:#0e1b20;--surface:#17252b;--line:#2a3d44;--brand:#4fc3d6;--otc:#143a40;--otc-ink:#8fdbe8;--field:rgba(255,255,255,.08);--grad:linear-gradient(180deg,#0e1b20 0%,#131c22 55%,#241a22 100%)}
+body{background:var(--grad);background-attachment:fixed;min-height:100vh}
+body,h1,h2,h3,.item b{font-family:Inter,"Segoe UI",system-ui,sans-serif}
+h1{font-size:32px;font-weight:700;letter-spacing:-.6px}
+.panel,.qcell{border:0;border-radius:22px;box-shadow:0 6px 24px rgba(30,70,90,.07)}
+.btn{border-radius:99px;padding:11px 20px}
+nav{border-radius:99px;background:var(--field)}
+nav button{border-radius:99px}
+#q{border:0;border-radius:99px;padding:15px 18px 15px 48px!important;background-color:var(--field);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%237d9097' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='9' r='6.5'/%3E%3Cpath d='M14 14l4 4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:17px center;box-shadow:0 2px 10px rgba(30,70,90,.05)}
+.chips{gap:10px;padding:14px 2px 8px}
+.chip{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:84px;padding:14px 10px;border:0;border-radius:18px;background:var(--surface);box-shadow:0 4px 16px rgba(30,70,90,.06);font-size:13px}
+.chip .ico{font-size:22px;line-height:1}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink)}
+.item{gap:12px;border:0;border-radius:18px;box-shadow:0 4px 16px rgba(30,70,90,.06)}
+.item .tx{flex:1;min-width:0}
+.ic{width:42px;height:42px;border-radius:50%;background:var(--otc);display:grid;place-items:center;font-size:20px;flex:none}
+ul.ok,ul.no{list-style:none;padding-left:0}
+ul.ok li,ul.no li{position:relative;padding-left:26px;margin:4px 0}
+ul.ok li::before{content:"\2713";position:absolute;left:0;color:var(--brand);font-weight:700}
+ul.no li::before{content:"\2715";position:absolute;left:0;color:var(--rx-ink);font-weight:700}
+details.share .qrbox{background:var(--otc);border-radius:20px;padding:18px;flex-direction:column;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>Explore medicines</h1><div class="sub">ScanRx: what a medicine is for and how to use it safely</div></div><button class="btn alt" id="sizeBtn" type="button" aria-label="Make text larger">A+</button></header>
+<nav role="tablist" id="nav" class="hide">
+<button role="tab" id="tabFind" aria-selected="true">Find a drug</button>
+<button role="tab" id="tabShare" aria-selected="false">Share the app</button>
+<button role="tab" id="tabAdd" aria-selected="false">Add drugs</button>
+</nav>
+
+<section id="findView">
+<div id="browse"><input type="text" id="q" placeholder="Search medicine or symptom (e.g. Biogesic, fever)" aria-label="Search medicines" style="width:100%;font-size:1.1em;padding:14px">
+<div class="chips" id="chips"></div>
+<div class="list" id="list"></div></div>
+<div id="result" aria-live="polite" style="margin-top:16px"></div>
+</section>
+
+<section id="shareView" class="hide">
+<div class="panel" style="text-align:center">
+<h2 style="font-size:22px">QR code for the app</h2>
+<p class="msg">Anyone who scans this with their phone camera opens ScanRx.</p>
+<div class="qr big" id="appQr"></div>
+<div class="row" style="justify-content:center"><input type="text" id="urlIn" aria-label="App link" placeholder="Paste the app link here"><button class="btn" id="urlBtn">Update QR</button></div>
+<p class="msg">If the QR doesn’t open the app, paste your published app link above and tap Update QR.</p>
+</div>
+<h2 style="font-size:20px;margin:22px 0 4px">QR code for each drug</h2>
+<p class="msg" style="margin-top:0">Each code opens that drug’s page directly. Place it on a shelf label, packaging or a leaflet.</p>
+<div class="qgrid" id="qgrid"></div>
+</section>
+<section id="addView" class="hide"><div class="panel">
+<h2 style="font-size:22px">Add more drugs</h2>
+<p class="msg">Paste a CSV or JSON list, or upload a .csv file. Columns: name, brands, cls, type (OTC or Rx), use, dose, se, contra, inter, tip, source. Separate list items with ; (semicolon).</p>
+<textarea id="impText" rows="7" aria-label="Drug list" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit" placeholder="name,brands,cls,type,use,dose,se,contra,inter,tip,source&#10;Salbutamol,Ventolin,Bronchodilator,Rx,Asthma;COPD,100–200 mcg inhaled as needed,Tremor;Palpitations,Allergy to salbutamol,Beta-blockers,Rinse mouth after use,PNF"></textarea>
+<div class="row"><button class="btn" id="impBtn">Add drugs</button><label class="btn alt" style="cursor:pointer">Upload CSV<input id="impFile" type="file" accept=".csv,.json,text/csv,application/json" class="hide"></label><button class="btn alt" id="impClear">Clear saved</button></div>
+<p class="msg" id="impMsg"></p>
+<p class="msg">Imported drugs are saved only in this browser. To make them appear for everyone who scans the QR, send me the list and I’ll build it into the app.</p>
+</div></section>
+<p class="msg">For information only. Ask your pharmacist or doctor before starting, stopping or mixing medicines. Prototype content: not yet verified by a pharmacist.</p>
+<p class="msg"><button class="linkbtn" id="staffBtn" type="button">Staff tools</button></p>
+</main>
+
+<script>
+const DRUGS = {
+paracetamol:{name:"Paracetamol",brands:"Biogesic, Tempra, Calpol",cls:"Analgesic / antipyretic",type:"OTC",
+use:["Mild to moderate pain (headache, toothache, body ache)","Fever"],
+dose:"Adults: 500–1,000 mg every 4–6 hours. Maximum 4 g per day (less if liver disease or heavy alcohol use). Children are dosed by weight.",
+se:["Rare at normal doses","Overdose can cause serious liver damage"],
+contra:["Severe liver disease","Allergy to paracetamol"],
+inter:["Warfarin (regular high use raises INR)","Other products that also contain paracetamol (risk of double dosing)","Alcohol"],
+tip:"Check cold and flu products for hidden paracetamol."},
+ibuprofen:{name:"Ibuprofen",brands:"Advil, Medicol, Dolan",cls:"NSAID",type:"OTC",
+use:["Pain and inflammation","Fever","Menstrual cramps"],
+dose:"Adults (OTC): 200–400 mg every 4–6 hours with food. Maximum 1,200 mg per day unless a doctor advises otherwise.",
+se:["Stomach upset, heartburn","GI bleeding or ulcer","Kidney problems with prolonged use","Raised blood pressure"],
+contra:["Active peptic ulcer or GI bleeding","NSAID or aspirin allergy/asthma","Third trimester of pregnancy","Severe kidney or heart failure"],
+inter:["Aspirin and other NSAIDs","Warfarin and other anticoagulants","ACE inhibitors, ARBs, diuretics (kidney risk)","Lithium, methotrexate"],
+tip:"Take with food or milk."},
+amoxicillin:{name:"Amoxicillin",brands:"Amoxil, Moxicle",cls:"Penicillin antibiotic",type:"Rx",
+use:["Bacterial infections of ear, throat, sinus, chest, urinary tract"],
+dose:"Adults: commonly 500 mg every 8 hours, as prescribed. Children dosed by weight. Complete the full course.",
+se:["Diarrhea, nausea","Skin rash","Serious allergic reaction (rare)","Yeast infection"],
+contra:["Allergy to penicillins"],
+inter:["Methotrexate (higher toxicity)","Warfarin (may raise INR)","Allopurinol (more rashes)"],
+tip:"Not for colds or flu, which are viral."},
+cetirizine:{name:"Cetirizine",brands:"Zyrtec, Allerkid, Virlix",cls:"Antihistamine (2nd generation)",type:"OTC",
+use:["Allergic rhinitis, hay fever","Hives (urticaria)","Itching from allergies"],
+dose:"Adults and children 12+: 10 mg once daily. Lower doses for younger children and kidney impairment.",
+se:["Drowsiness","Dry mouth","Headache, fatigue"],
+contra:["Allergy to cetirizine or hydroxyzine"],
+inter:["Alcohol and sedatives (more drowsiness)"],
+tip:"May cause sleepiness; take care when driving."},
+loperamide:{name:"Loperamide",brands:"Imodium, Diatabs",cls:"Antidiarrheal",type:"OTC",
+use:["Acute non-infectious diarrhea","Travelers' diarrhea"],
+dose:"Adults: 4 mg first, then 2 mg after each loose stool. Maximum 8 mg per day (OTC).",
+se:["Constipation, bloating","Dizziness","Heart rhythm problems at very high doses"],
+contra:["Bloody stools or fever","Bacterial colitis","Children under 2 years"],
+inter:["Quinidine, ritonavir, gemfibrozil (raise loperamide levels)"],
+tip:"Replace fluids and salts with ORS. See a doctor if diarrhea lasts over 2 days."},
+omeprazole:{name:"Omeprazole",brands:"Losec, Risek",cls:"Proton pump inhibitor",type:"Rx",
+use:["GERD, acid reflux","Peptic ulcer","H. pylori eradication (with antibiotics)"],
+dose:"Adults: 20 mg once daily, 30 minutes before breakfast. Duration set by the prescriber.",
+se:["Headache, diarrhea, nausea","Low magnesium and vitamin B12 with long-term use","Increased fracture risk with long-term use"],
+contra:["Allergy to PPIs","Use with rilpivirine"],
+inter:["Clopidogrel (reduced effect)","Methotrexate","Warfarin"],
+tip:"Take before a meal, not after."},
+metformin:{name:"Metformin",brands:"Glucophage, Diabex",cls:"Biguanide antidiabetic",type:"Rx",
+use:["Type 2 diabetes mellitus"],
+dose:"Adults: start 500 mg once or twice daily with meals; titrate as directed. Max usually 2,000–2,550 mg per day.",
+se:["Nausea, diarrhea, metallic taste","Vitamin B12 deficiency (long-term)","Lactic acidosis (rare, serious)"],
+contra:["Severe kidney impairment (eGFR below 30)","Metabolic acidosis","Hold around iodinated contrast procedures"],
+inter:["Alcohol (lactic acidosis risk)","Iodinated contrast","Cimetidine"],
+tip:"Take with meals to reduce stomach upset."},
+amlodipine:{name:"Amlodipine",brands:"Norvasc, Amlosun",cls:"Calcium channel blocker",type:"Rx",
+use:["Hypertension","Angina"],
+dose:"Adults: 5 mg once daily; may increase to 10 mg. Lower start in the elderly or liver impairment.",
+se:["Ankle swelling","Flushing, headache","Dizziness, fatigue","Gum overgrowth (rare)"],
+contra:["Severe hypotension","Allergy to dihydropyridines","Cardiogenic shock"],
+inter:["Simvastatin (limit simvastatin to 20 mg)","CYP3A4 inhibitors such as clarithromycin, ketoconazole","Grapefruit juice (mild)"],
+tip:"Do not stop suddenly without advice; take at the same time each day."}
+};
+const $=id=>document.getElementById(id);
+const li=a=>a.map(x=>`<li>${x}</li>`).join("");
+let base=location.href.split("#")[0],current=null;
+const link=k=>k?base+"#"+k:base;
+function qrSvg(text){try{const q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){return "<span>QR unavailable</span>"}}
+const tagHtml=d=>`<span class="tag ${d.type==='OTC'?'otc':'rx'}">${d.type==='OTC'?'Over the counter':'Prescription only'}</span>`;
+function card(k){
+ const d=DRUGS[k];
+ return `<button class="btn alt back" id="backBtn" type="button">← All medicines</button><div class="panel drug">${tagHtml(d)}
+ <h2 style="margin-top:8px">${d.name}</h2><div class="brands">${d.brands} · ${d.cls}</div>
+ <div class="sec"><h3>What it’s for</h3><ul class="ok">${li(d.use)}</ul></div>
+ <div class="sec"><h3>How much to take (adults)</h3>${d.dose}</div>
+ <div class="sec"><h3>Possible side effects</h3><ul>${li(d.se)}</ul></div>
+ <div class="sec"><h3>Don’t take it if</h3><ul class="no">${li(d.contra)}</ul></div>
+ <div class="sec"><h3>Don’t mix with, or ask first</h3><ul class="no">${li(d.inter)}</ul></div>
+ <div class="warn"><b>Counseling tip:</b> ${d.tip}</div>${d.source?`<p class="msg">Source: ${d.source}</p>`:""}
+ <div class="urgent"><b>Get urgent help</b> for trouble breathing, swelling of the face or throat, or a severe rash.</div>
+ <details class="share"><summary>Share this page</summary><div class="qrbox"><div class="qr">${qrSvg(link(k))}</div><div class="sub">Scan to open the ${d.name} page on another phone.</div></div></details></div>`;
+}
+function openDrug(k){
+ current=k;$("result").innerHTML=card(k);$("browse").classList.add("hide");window.scrollTo(0,0);
+}
+function showList(){current=null;$("result").innerHTML="";$("browse").classList.remove("hide");try{history.replaceState(null,"",location.href.split("#")[0])}catch(x){}}
+$("result").onclick=e=>{if(e.target.closest("#backBtn"))showList()};
+const cat=d=>{const c=(d.cls||"").toLowerCase();return /analgesic|nsaid/.test(c)?"Pain & fever":/antihistamine/.test(c)?"Allergy":/antibiotic|antibacterial/.test(c)?"Infection":/antidiarrheal|proton|antacid/.test(c)?"Stomach":/antidiabetic|biguanide/.test(c)?"Diabetes":/calcium channel|ace inhibitor|beta.?blocker|statin|diuretic|antihypertensive/.test(c)?"Heart & blood pressure":"Other"};
+let catSel="All";
+const ICO={"All":"💊","Pain & fever":"🌡️","Allergy":"🤧","Infection":"🦠","Stomach":"🤢","Diabetes":"🩸","Heart & blood pressure":"❤️","Other":"💊"};
+function renderList(){
+ const t=$("q").value.trim().toLowerCase();
+ const cats=["All",...new Set(Object.values(DRUGS).map(cat))];
+ $("chips").innerHTML=cats.map(c=>`<button class="chip" type="button" aria-pressed="${c===catSel}" data-c="${c}"><span class="ico">${ICO[c]||"💊"}</span>${c}</button>`).join("");
+ const keys=Object.keys(DRUGS).filter(k=>{const d=DRUGS[k];return (catSel==="All"||cat(d)===catSel)&&(!t||[d.name,d.brands,d.cls,d.use.join(" ")].join(" ").toLowerCase().includes(t))});
+ $("list").innerHTML=keys.length?keys.map(k=>`<button class="item" data-k="${k}"><span class="ic">${ICO[cat(DRUGS[k])]||"💊"}</span><span class="tx"><b>${DRUGS[k].name}</b><small>${DRUGS[k].brands}</small></span>${tagHtml(DRUGS[k])}</button>`).join(""):'<p class="msg">No match. Try a brand name or a condition.</p>';
+}
+$("q").oninput=renderList;
+$("chips").onclick=e=>{const b=e.target.closest(".chip");if(b){catSel=b.dataset.c;renderList()}};
+$("list").onclick=e=>{const b=e.target.closest(".item");if(!b)return;openDrug(b.dataset.k,true);try{history.replaceState(null,"","#"+b.dataset.k)}catch(x){}};
+function drawShare(){
+ $("appQr").innerHTML=qrSvg(base);$("urlIn").value=base;
+ $("qgrid").innerHTML=Object.keys(DRUGS).map(k=>`<div class="qcell"><div class="qr">${qrSvg(link(k))}</div><b>${DRUGS[k].name}</b></div>`).join("");
+}
+function tab(w){
+ ["find","share","add"].forEach(v=>{const on=v===w;$(v+"View").classList.toggle("hide",!on);$("tab"+v[0].toUpperCase()+v.slice(1)).setAttribute("aria-selected",on)});
+ if(w==="share")drawShare();
+}
+$("tabFind").onclick=()=>tab("find");$("tabShare").onclick=()=>tab("share");$("tabAdd").onclick=()=>tab("add");
+$("urlBtn").onclick=()=>{const v=$("urlIn").value.trim().split("#")[0];if(v){base=v;drawShare();if(current)openDrug(current)}};
+function fromHash(){const h=location.hash.slice(1).toLowerCase();if(DRUGS[h]){tab("find");openDrug(h,true)}}
+window.addEventListener("hashchange",fromHash);
+$("staffBtn").onclick=()=>{const hidden=$("nav").classList.toggle("hide");if(hidden)tab("find");$("staffBtn").textContent=hidden?"Staff tools":"Hide staff tools"};
+$("sizeBtn").onclick=()=>{const b=document.body.classList.toggle("big");$("sizeBtn").textContent=b?"A−":"A+"};
+const KEY="scanrx-extra";
+function addDrugs(arr){let n=0;const L=v=>Array.isArray(v)?v:String(v||"").split(";").map(s=>s.trim()).filter(Boolean);arr.forEach(o=>{if(!o||!o.name)return;const k=(o.key||o.name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");DRUGS[k]={name:o.name,brands:o.brands||"",cls:o.cls||"",type:/^rx/i.test(o.type)?"Rx":"OTC",use:L(o.use),dose:o.dose||"",se:L(o.se),contra:L(o.contra),inter:L(o.inter),tip:o.tip||"",source:o.source||""};n++});return n}
+function parseCsv(t){const rows=[];let r=[],c="",q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===","){r.push(c);c=""}else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&t[i+1]==="\n")i++;r.push(c);c="";if(r.some(x=>x.trim()))rows.push(r);r=[]}else c+=ch}r.push(c);if(r.some(x=>x.trim()))rows.push(r);const h=rows.shift().map(x=>x.trim().toLowerCase());return rows.map(R=>Object.fromEntries(h.map((k,i)=>[k,(R[i]||"").trim()])))}
+function importMsg(m,err){const e=$("impMsg");e.textContent=m;e.className="msg"+(err?" err":"")}
+function importText(t){let arr;try{arr=t.trim().startsWith("[")?JSON.parse(t):parseCsv(t)}catch(e){return importMsg("Could not read that. Check the format.",true)}const n=addDrugs(arr);if(!n)return importMsg("No drugs found. Each row needs at least a name.",true);try{const s=JSON.parse(localStorage.getItem(KEY)||"[]");localStorage.setItem(KEY,JSON.stringify(s.concat(arr)))}catch(e){}renderList();importMsg(`Added ${n} drug${n>1?"s":""}. Total: ${Object.keys(DRUGS).length}.`)}
+try{addDrugs(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
+$("impBtn").onclick=()=>importText($("impText").value);
+$("impFile").onchange=e=>{const f=e.target.files[0];if(f)f.text().then(importText);e.target.value=""};
+$("impClear").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}importMsg("Saved imports cleared. Reload the page.")};
+// Paste the Google Sheet "Publish to web" CSV link between the quotes. Leave empty to use the built-in drugs.
+const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTVOGItsNYuxuupKhrX9UwBNt1gxp4xWDpCz9t4CIDhJjwQhv4ZhVJ_hW9mdZ5m42OwJhF9R5SRZ6Ok/pub?output=csv";
+function applySheet(t){const arr=parseCsv(t);if(!arr.some(o=>o.name))return false;Object.keys(DRUGS).forEach(k=>delete DRUGS[k]);addDrugs(arr);return true}
+async function loadSheet(){
+ if(!SHEET_URL)return;
+ const CK="scanrx-sheet";
+ try{const r=await fetch(SHEET_URL,{cache:"no-store"});if(!r.ok)throw 0;const t=await r.text();if(applySheet(t)){try{localStorage.setItem(CK,t)}catch(e){}}}
+ catch(e){try{const t=localStorage.getItem(CK);if(t)applySheet(t)}catch(x){}}
+ renderList();if(current)openDrug(current);else fromHash();
+}
+renderList();fromHash();loadSheet();
+</script>
+</body>
+</html>
